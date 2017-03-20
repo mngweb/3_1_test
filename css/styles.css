@@ -13,7 +13,7 @@
     flex-direction: column;
 }
 
-.link{
-    padding: 10px;
+.position, .link{
+    padding-top: 10px;
     text-align: center;
 }
