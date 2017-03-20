@@ -1,33 +1,40 @@
 
 (function() {
 
-    var supportOutput = document.querySelector("#supportOutput"),
-        positionOutput = document.querySelector("#positionOutput"),
-        findPositionButton = document.querySelector("#findPosition");
+    var linkOutput = document.querySelector("#link"),
+        button = document.querySelector("#button");
 
 
-//SPRAWDZANIE WSPARCIA PRZEGLĄDARKI DLA GEOLOKALIZACJI
-    if (!navigator.geolocation) { // jeśli w obiekcie navigator znajduje się obiekt geolocation to mamy wsparcie
-        supportOutput.innerHTML = "Twoja przeglądarka nie wspiera Geolokalizacji!";
-        supportOutput.classList.add("alert-danger");
-    } else {
-        supportOutput.innerHTML = "Twoja przeglądarka wspiera Geolokalizację!";
-        supportOutput.classList.add("alert-success");
+
+    if (!navigator.geolocation) { 
+        linkOutput.innerHTML = "Ta przeglądarka nie wspiera Geolokalizacji!";
+    } 
+
+
+    function geoSuccess(position) {
+
+        /*   PYTANIE: czy dopisanie sp=point.latitude_longitude_titleString
+        (wg strony wg https://msdn.microsoft.com/en-us/library/dn217138.aspx )
+        jak w poniższej zakomentowanej linii nie powinno pokazywać jakiegoś markera - zamiast tego powoduje pojawienie się komunikatu o Udostępnionych miejscach z tekstem "Wystąpił problem z zapisaniem zmian w kolekcji. Spróbuj ponownie."    */
+
+        // var url = "http://bing.com/maps/default.aspx?cp=" + position.coords.latitude + "~" + position.coords.longitude + "&lvl=17&style=h&sp=point." + position.coords.latitude + "-" + position.coords.longitude + "_Jestes%20tutaj";
+
+
+        var url = "http://bing.com/maps/default.aspx?cp=" + position.coords.latitude + "~" + position.coords.longitude + "&lvl=17&style=h&rtp=pos." + position.coords.latitude + "_" + position.coords.longitude + "_Jestes%20tutaj";
+
+
+
+        linkOutput.innerHTML = "<a href='" + url + "' target='_blank'>Link do mapy Bing</a>";
+
     }
 
-//FUNKCJA SUKCESU
-    function geoSuccess(position) { // funkcja wykonywana, gdy uda się pobrać pozycję
-        positionOutput.innerHTML = "Twoja pozycja to: " + position.coords.latitude + "," + position.coords.longitude; // latitude - szerokość, longitude - długość geograficzna
-        // polecam wyświetlenie position w konsoli poprzez console.log(position) i przyjrzenie się pozostałym właściwościom
-    }
 
 
-//FUNKCJA OBSŁUGI BŁĘDÓW
-    function geoError(errorObj) { // funkcja wykonywana, gdy wystąpił jakiś bląd
+    function geoError(errorObj) {
 
         var errorMessage;
 
-        switch (errorObj.code) { // .code to kod błedu, możemy go porównać do:
+        switch (errorObj.code) {
             case errorObj.PERMISSION_DENIED:
                 errorMessage = "Brak pozwolenia na znalezienie lokalizacji.";
                 break;
@@ -41,25 +48,19 @@
                 break;
         }
 
-        positionOutput.innerHTML = "<strong>Wystąpił błąd: </strong>" + errorMessage;
+        linkOutput.innerHTML = "<strong>Wystąpił błąd: </strong>" + errorMessage;
 
     }
 
-    var options = { // opcje przekazywane przy pobieraniu pozycji
-        timeout: 5000 // można podać jeszcze enagleHighAccuracy: true/false oraz maximumAge: jako liczba (domyślnie Infinity)
+    var options = { 
+        timeout: 1000
     }
 
-    findPositionButton.onclick = function() { // po wciśnięciu przycisku
+   button.onclick = function() {
 
-        positionOutput.innerHTML = "Czekaj..."; //bo pobieranie lokalizacji zazwyczaj chwilę trwa
+        linkOutput.innerHTML = "Czekaj...";
 
-        navigator.geolocation.getCurrentPosition(geoSuccess, geoError, options); // pobieramy pozycję i przekazujemy funkcje oraz opcje do .getCurrentPosition
-        
-
-// navigator.geolocation.getCurrentPosition(function(pos){
-// 	console.log(pos.coords.latitude);
-// });
-
+        navigator.geolocation.getCurrentPosition(geoSuccess, geoError, options);
     }
 
 })();
