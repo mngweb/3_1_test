@@ -1,13 +1,14 @@
 
 (function() {
 
-    var linkOutput = document.querySelector("#link"),
+    var positionOutput = document.querySelector("#position"),
+        linkOutput = document.querySelector("#link"),
         button = document.querySelector("#button");
 
 
 
     if (!navigator.geolocation) { 
-        linkOutput.innerHTML = "Ta przeglądarka nie wspiera Geolokalizacji!";
+        positionOutput.innerHTML = "Ta przeglądarka nie wspiera Geolokalizacji!";
     } 
 
 
@@ -23,7 +24,7 @@
         var url = "http://bing.com/maps/default.aspx?cp=" + position.coords.latitude + "~" + position.coords.longitude + "&lvl=17&style=h&rtp=pos." + position.coords.latitude + "_" + position.coords.longitude + "_Jestes%20tutaj";
 
 
-
+        positionOutput.innerHTML = "Twoja pozycja to: " + position.coords.latitude + ", " + position.coords.longitude;
         linkOutput.innerHTML = "<a href='" + url + "' target='_blank'>Link do mapy Bing</a>";
 
     }
@@ -48,7 +49,7 @@
                 break;
         }
 
-        linkOutput.innerHTML = "<strong>Wystąpił błąd: </strong>" + errorMessage;
+        positionOutput.innerHTML = "<strong>Wystąpił błąd: </strong>" + errorMessage;
 
     }
 
@@ -58,7 +59,7 @@
 
    button.onclick = function() {
 
-        linkOutput.innerHTML = "Czekaj...";
+        positionOutput.innerHTML = "Czekaj...";
 
         navigator.geolocation.getCurrentPosition(geoSuccess, geoError, options);
     }
