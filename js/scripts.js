@@ -1,67 +1,74 @@
 /*
-5. Konwerter Markdown do HTML z File API
-Korzystając z File API stwórz konwerter formatu Markdown do formatu HTML. Twoim zadaniem jest stworzenie pola <input> o typie file, dzięki któremu użytkownik będzie mógł wybrać plik z formatem Markdown (zapisz treść dostępną tutaj do pliku lub stwórz własną), który automatycznie zostanie skonwertowany do kodu HTML (wykorzystaj do tego celu Showdown.js). Kod HTML, który otrzymasz po użyciu odpowiedniej metody z Showdown.js, wstaw w pole podglądu, które utworzysz. Możesz również dodać możliwość skopiowania wygenerowanego kodu HTML. Najłatwiej zrobić to wyświetlając pole <textarea>, do którego wstawisz owy kod, a następnie wywołasz na nim metodę .select()
-
-https://github.com/showdownjs/showdown
+1. Link do mapy z położeniem użytkownika
+Wykorzystaj API Geolokalizacji, by stworzyć odnośnik do map Bing, który otworzy mapę z aktualnym położeniem użytkownika. Stwórz na stronie internetowej przycisk, po kliknięciu którego pobrane zostanie położenie odwiedzającego. Z uzyskanych danych wyłuskaj latitude i longitude, a następnie wstaw je odpowiednio w następujący URL: 
+http://bing.com/maps/default.aspx?cp=LAT~LON uzyskując w ten sposób np.
+http://bing.com/maps/default.aspx?cp=52.162050~21.071350 
+Na koniec, wyświetl użytkownikowi link, po kliknięciu którego zostanie przeniesiony pod wcześniej skonstruowany adres.
 */
-
-
-
 
 (function() {
 
-    //PYTANIE 1: Jak zrobić aby oba divy zaczynały się w jednej lini?
+    var positionOutput = document.querySelector("#position"),
+        linkOutput = document.querySelector("#link"),
+        button = document.querySelector("#button");
 
-    //PYTANIE 2: Co można zrobić z wychodzącymi z diva fragmentami wynikowego htmla?
 
-   if(!window.FileReader) return; 
 
-    var fileInput = document.querySelector("#fileInput"),
-        start = document.querySelector("#start"),
-        stop = document.querySelector("#stop"),
-        progress = document.querySelector("#progress"),
-        markupOutput = document.querySelector("#markupOutput"),
-        htmlOutput = document.querySelector("#htmlOutput");
+    if (!navigator.geolocation) { 
+        positionOutput.innerHTML = "Ta przeglądarka nie wspiera Geolokalizacji!";
+    } 
 
-    fileInput.onchange = function() { 
 
-        var file = this.files[0],
-            reader = new FileReader();
+    function geoSuccess(position) {
 
-        if(!file.type.match('text/plain')){
-        //if(!fileLink.name.match(".*\.txt")){
-             alert("Proszę wybrać plik tekstowy!");
+        /*   PYTANIE: czy dopisanie sp=point.latitude_longitude_titleString
+        (wg strony wg https://msdn.microsoft.com/en-us/library/dn217138.aspx )
+        jak w poniższej zakomentowanej linii nie powinno pokazywać jakiegoś markera - zamiast tego powoduje pojawienie się komunikatu o Udostępnionych miejscach z tekstem "Wystąpił problem z zapisaniem zmian w kolekcji. Spróbuj ponownie."    */
+
+        // var url = "http://bing.com/maps/default.aspx?cp=" + position.coords.latitude + "~" + position.coords.longitude + "&lvl=17&style=h&sp=point." + position.coords.latitude + "-" + position.coords.longitude + "_Jestes%20tutaj";
+
+
+        var url = "http://bing.com/maps/default.aspx?cp=" + position.coords.latitude + "~" + position.coords.longitude + "&lvl=17&style=h&rtp=pos." + position.coords.latitude + "_" + position.coords.longitude + "_Jestes%20tutaj";
+
+
+        positionOutput.innerHTML = "Twoja pozycja to: " + position.coords.latitude + ", " + position.coords.longitude;
+        linkOutput.innerHTML = "<a href='" + url + "' target='_blank'>Link do mapy Bing</a>";
+
+    }
+
+
+
+    function geoError(errorObj) {
+
+        var errorMessage;
+
+        switch (errorObj.code) {
+            case errorObj.PERMISSION_DENIED:
+                errorMessage = "Brak pozwolenia na znalezienie lokalizacji.";
+                break;
+
+            case errorObj.POSITION_UNAVAILABLE:
+                errorMessage = "Brak dostępu do sieci.";
+                break;
+
+            case errorObj.TIMEOUT:
+                errorMessage = "Przekroczono czas oczekiwania.";
+                break;
         }
-        
 
-            reader.onprogress = function(e) {
-                if(e.lengthComputable) { 
-                    var percent = (e.loaded / e.total) * 100; 
+        positionOutput.innerHTML = "<strong>Wystąpił błąd: </strong>" + errorMessage;
 
-                    progress.value = percent; 
-                }
-            }
+    }
 
-            reader.onload = function(e) {
-                var converter = new showdown.Converter(),
-                    markup = this.result,
-                    html = converter.makeHtml(markup);
+    var options = { 
+        timeout: 1000
+    }
 
-                markupOutput.innerText = this.result;
-                //console.log(this.result);
+   button.onclick = function() {
 
-                htmlOutput.innerText = html;
-                // console.log(html);
-            }
+        positionOutput.innerHTML = "Czekaj...";
 
-
-            start.onclick = function() {
-                reader.readAsText(file);
-            }
-
-
-
-
+        navigator.geolocation.getCurrentPosition(geoSuccess, geoError, options);
     }
 
 })();
